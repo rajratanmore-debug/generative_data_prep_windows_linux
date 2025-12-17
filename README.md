@@ -19,6 +19,45 @@
 
 This software package allows you to prepare datasets for training generative LLMs on SambaStudio and SambaNova's Reconfigurable Data Units (RDUs). Some features include efficient multiprocessing, shuffling data that outsizes RAM, and specifying tokens to attend to during training.
 
+## What This Tool Does
+
+The pipeline takes your raw text data and converts it into a format ready for training:
+
+1. **Reads** your input file (`.jsonl` or `.txt` format)
+2. **Shuffles** the data (optional, but recommended)
+3. **Splits** into train/dev/test sets (optional)
+4. **Tokenizes** using your specified tokenizer
+5. **Packs** sequences into fixed-length chunks
+6. **Saves** as HDF5 files ready for training
+
+**Input**: Raw text files → **Output**: Tokenized HDF5 files ready for SambaStudio training
+
+## Key Features
+
+- ✅ **Cross-platform**: Works on Linux, macOS, and Windows
+- ✅ **Efficient**: Multiprocessing support for fast tokenization
+- ✅ **Scalable**: Handles files larger than RAM with `large_file` shuffle option
+- ✅ **Flexible**: Multiple packing strategies for different use cases
+- ✅ **Production-ready**: Comprehensive error handling and logging
+
+## Workflow Overview
+
+```
+Input File (.jsonl/.txt)
+    ↓
+[Optional: Shuffle]
+    ↓
+[Optional: Split into train/dev/test]
+    ↓
+Tokenize (using your tokenizer)
+    ↓
+Pack into sequences (based on config)
+    ↓
+Save as HDF5 files
+    ↓
+Output Directory (ready for training)
+```
+
 The [`pipeline.py`](https://github.com/sambanova/generative_data_prep/blob/main/generative_data_prep/data_prep/pipeline.py) script streamlines the data preparation process. It takes a single input file, shuffles and splits it into train/dev/test files, tokenizes, sequences, and converts them to HDF5 format using the utilities in [`data_prep.py`](https://github.com/sambanova/generative_data_prep/blob/main/generative_data_prep/data_prep/data_prep.py). The output directory contains multiple split HDF5 files that are needed to run data parallel training. This output directory will be directly used as a training dataset in SambaStudio. While this package features simple flows that work out of the box, it also supports more customization allowing for many styles of packing varied length text into tokenized sequences.
 
 If you are an advanced user looking to process data with pre-defined splits, integrate with the package validation tools, or contribute, check out the [Advanced Usage](#advanced-usage) section below!
@@ -45,28 +84,232 @@ If you are an advanced user looking to process data with pre-defined splits, int
 </br>
 
 ## Requirements
-- Python version 3.8.10+
-- Support for Linux and Mac OS. Not tested on Windows
+
+### System Requirements
+- **Python**: Version 3.8.10 or higher
+- **Operating System**: Linux, macOS, or Windows (fully supported)
+- **RAM**: At least 4GB recommended (more for large datasets)
+- **Disk Space**: Enough space for output files (typically 2-3x input size)
+
+### Python Packages
+All required packages are automatically installed when you run `pip install .`
+
+### Platform-Specific Notes
+
+#### Windows
+- ✅ Fully supported - no special setup required
+- The pipeline automatically adjusts worker count for Windows compatibility
+- Use `python` instead of `python3` in commands
+- File paths can use forward slashes (`/`) or backslashes (`\`), or use raw strings: `r"C:\path\to\file"`
+
+#### Linux / macOS
+- ✅ Fully supported
+- Use `python3` or `python` depending on your system
+- Standard Unix file paths work as expected
 
 </br>
 
 ## Installation
+
+### Standard Installation
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/sambanova/generative_data_prep.git
+   cd generative_data_prep
+   ```
+
+2. **Install the package**:
+   ```bash
+   pip install .
+   ```
+   
+   **Note**: On some systems, you may need to use `pip3` instead of `pip`, or `python -m pip install .`
+
+3. **Verify installation**:
+   ```bash
+   python -m generative_data_prep --help
+   ```
+   
+   You should see the help message with available commands.
+
+### Alternative: Development Installation
+
+If you plan to modify the code:
+```bash
+pip install -e .
 ```
+
+This installs in "editable" mode, so changes to the code are immediately available.
+
+### Troubleshooting Installation
+
+- **Permission errors**: Use `pip install --user .` or install in a virtual environment
+- **Python not found**: Ensure Python 3.8.10+ is installed and in your PATH
+- **Package conflicts**: Use a virtual environment:
+  ```bash
+  python -m venv venv
+  source venv/bin/activate  # On Windows: venv\Scripts\activate
+  pip install .
+  ```
+
+</br>
+
+## Quick Start Guide
+
+### Before You Start - Checklist
+
+Before running the pipeline, make sure you have:
+
+- [ ] **Python 3.8.10+ installed** - Check with `python --version`
+- [ ] **Input data file ready** - Either `.jsonl` or `.txt` format (see [Input Format](#input-format))
+- [ ] **Tokenizer ready** - Either:
+  - HuggingFace model ID (e.g., `openai-community/gpt2`)
+  - Local path to tokenizer directory
+- [ ] **Enough disk space** - Output will be 2-3x the size of your input
+- [ ] **HuggingFace access** (if using gated models) - Log in with `huggingface-cli login`
+
+### Step 1: Install the Package
+
+```bash
 git clone https://github.com/sambanova/generative_data_prep.git
 cd generative_data_prep
 pip install .
 ```
 
-</br>
+**Note for Windows users**: The package is fully compatible with Windows. If you encounter any issues, ensure you're using Python 3.8.10 or higher.
 
-## Getting Started
+### Step 2: Prepare Your Input Data
+
+Your input data should be in one of these formats:
+- **JSONL format** (recommended): Each line is a JSON object with `prompt` and `completion` fields
+- **TXT format**: Plain text, one article per line
+
+**Example**: The repository includes `example_input_data.jsonl` - you can use this as a reference for the correct format.
+
+See the [Input Format](#input-format) section below for detailed format specifications.
+
+### Step 3: Choose Your Tokenizer
+
+You can use either:
+- **HuggingFace model ID**: e.g., `openai-community/gpt2`, `mistralai/Mistral-7B-v0.1`
+- **Local tokenizer path**: Path to a directory containing tokenizer files
+
+**Important**: If using a gated model (like Llama models), you need to:
+1. Request access on the HuggingFace model card
+2. Log in via HuggingFace CLI: `huggingface-cli login`
+
+### Step 4: Run the Pipeline
+
+#### Using the Command Line
+
+```bash
+# Basic example
+python -m generative_data_prep pipeline \
+    --input_path=your_data.jsonl \
+    --output_path=output_directory \
+    --pretrained_tokenizer=openai-community/gpt2 \
+    --max_seq_length=1024 \
+    --input_packing_config=greedy::drop \
+    --shuffle=on_RAM
+```
+
+**Windows users**: Use `python` instead of `python3`. The command works the same way on all platforms.
+
+### Step 5: Check Your Output
+
+After processing completes, check the output directory:
+- **HDF5 files**: Tokenized training data (e.g., `train_1_of_32.hdf5`)
+  - These are the files you'll use for training
+  - Multiple files allow for parallel data loading during training
+- **metadata.yaml**: Dataset metadata and configuration
+  - Contains important info like `max_batch_size_train` (your training batch size must be ≤ this)
+  - Also includes `max_seq_length`, `vocab_size`, etc.
+- **tokenizer/**: Copy of the tokenizer for inference
+  - This will be included in your model checkpoints
+- **logs.log**: Processing logs and metrics
+  - Detailed information about the processing run
+  - Includes metrics like data utilization, token counts, etc.
+
+**What Success Looks Like**:
+- ✅ Progress bar reaches ~100%
+- ✅ Multiple HDF5 files created (number depends on your data size)
+- ✅ `metadata.yaml` file exists
+- ✅ `tokenizer/` directory exists
+- ✅ No errors in `logs.log`
+
+**If something went wrong**:
+- Check `logs.log` for error messages
+- See the [Troubleshooting](#troubleshooting) section below
+
+### Common Use Cases
+
+<details>
+<summary><b>Fine-tuning a Model</b> (Click to expand)</summary>
+
+For fine-tuning, use `single::truncate_right` or `greedy::truncate_right`:
+
+```bash
+python -m generative_data_prep pipeline \
+    --input_path=your_data.jsonl \
+    --output_path=output \
+    --pretrained_tokenizer=your_tokenizer \
+    --max_seq_length=2048 \
+    --input_packing_config=single::truncate_right \
+    --shuffle=on_RAM
+```
+
+</details>
+
+<details>
+<summary><b>Pre-training</b> (Click to expand)</summary>
+
+For pre-training, use `full` packing:
+
+```bash
+python -m generative_data_prep pipeline \
+    --input_path=your_data.jsonl \
+    --output_path=output \
+    --pretrained_tokenizer=your_tokenizer \
+    --max_seq_length=2048 \
+    --input_packing_config=full \
+    --shuffle=on_RAM
+```
+
+</details>
+
+<details>
+<summary><b>Chat/Instruction Tuning</b> (Click to expand)</summary>
+
+For chat models, add the `--apply_chat_template` flag:
+
+```bash
+python -m generative_data_prep pipeline \
+    --input_path=your_data.jsonl \
+    --output_path=output \
+    --pretrained_tokenizer=your_tokenizer \
+    --max_seq_length=2048 \
+    --input_packing_config=single::truncate_right \
+    --shuffle=on_RAM \
+    --apply_chat_template
+```
+
+**Note**: Your tokenizer must have a chat template defined. Check `tokenizer_config.json` for a `chat_template` key.
+
+</details>
+
+---
+
+## Getting Started (Detailed)
 
 The following simple example will help you get started with your first processed dataset:
 
-### Example
+### Example Command
 ```shell
-python3 -m generative_data_prep pipeline --input_path=<PATH TO DATASET FILE> --output_path=<PATH TO OUTPUT DIRECTORY> --pretrained_tokenizer=openai-community/gpt2 --max_seq_length=1024 --input_packing_config='greedy::drop' --shuffle=on_RAM
+python -m generative_data_prep pipeline --input_path=<PATH TO DATASET FILE> --output_path=<PATH TO OUTPUT DIRECTORY> --pretrained_tokenizer=openai-community/gpt2 --max_seq_length=1024 --input_packing_config='greedy::drop' --shuffle=on_RAM
 ```
+
+**Windows users**: Use `python` instead of `python3`. The command works the same way on all platforms.
 
 Here are a few important parameters to know about when running this example:
 
@@ -136,9 +379,13 @@ Here are a few important parameters to know about when running this example:
 
 </br>
 
-## Input
+## Input Format
 
-The `input_path` argument must be a file or a directory containing one files, each file must be a `.txt` or [`.jsonl`](https://jsonlines.org/).
+The `input_path` argument must be:
+- A **single file** in `.txt` or `.jsonl` format, OR
+- A **directory** containing one or more `.txt` or `.jsonl` files
+
+**Important**: All files in a directory will be combined and processed together.
 
 ### `.jsonl` Format
 
@@ -292,7 +539,7 @@ This section outlines all the flags you can set to customize the data prep pipel
 | `disable_space_separator` | bool | False | Include flag for True, no arguments |  If you include this flag, NO spaces will be prepended to the completion. (If you do not add this flag then a space is added to every completion if it does not already have a space). Including this flag is dangerous and not recommended because if you have input data like {"prompt": "hello." "completion": "how are you?"}, when the prompt and completion are combined it will look like "hello.how are you?" which will mess up the tokenization.--completion_keyword='target'. |
 | `keep_prompt_only_sequences` | bool | False | Include flag for True, no arguments | If you include this flag, packed sequences with only prompt tokens will not be dropped. Data with only prompt will be dropped by default because training with prompt-only sequences with prompt_loss_weight=0.0 may lead to errors. Data is dropped because of one of the following conditions: 1. the input file data prompt completion pairs contains only a prompt. 2. If the sequence is truncated such that only prompt tokens remain |
 | `categories_path` | str | False | Valid file path	 | If you include this flag, then the 'category' field from your input jsonls will be stored in the 'category_id' dataset in your output hdf5 files. This flag must point to the file path of a json file that contains a list of all the strings of the 'category' keys in your dataset.|
-| `shuffle` <span id="shuffle"></span> | str | 'False' | ['False', 'on_RAM', 'large_file'] | Choose the on_RAM option if your file is small enough to fit on RAM (If you are not sure if it fits on RAM, you can probably use this flag). If you are running a linux operating system and your file is too large to fit on RAM, please choose large_file option, this will run approximate file shuffling that can handle files of any size. If you want to do large file shuffling but you are not on linux, please shuffle the file before using this script. If the input file should not be shuffled, do not include this flag, it defaults to False. |
+| `shuffle` <span id="shuffle"></span> | str | 'False' | ['False', 'on_RAM', 'large_file'] | Choose the on_RAM option if your file is small enough to fit on RAM (If you are not sure if it fits on RAM, you can probably use this flag). If your file is too large to fit on RAM, please choose large_file option, this will run approximate file shuffling that can handle files of any size on all supported platforms (Linux, Mac OS, and Windows). If the input file should not be shuffled, do not include this flag, it defaults to False. |
 | `num_training_splits` | int | 32 if input_file_size < 10GB, 128 if 10GB < input_file_size <100GB, 256 if 100GB < input_file_size | | The number of training files to split input data into. We recommend you do not include this flag and allow it to default. If you do not default this flag, you have two options. Option 1: specify this flag with the `dev_ratio` and `test_ratio` flags, The total number of splits will be (`num_training_splits` / (1-`dev_ratio`-`test_ratio`)), and the number of dev and test splits are calculated accordingly. Option 2: specify this flag with the `num_dev_splits` and `num_test_splits` flags which define the number of splits directly. NOTE: the number of training splits must be greater than the number of training workers you have, and we recommend that the number of splits is a multiple of the number of workers you have. |
 | `dev_ratio` | float | 0.0 | [0 - 1] | The ratio of data that should be excluded from train set and used for evaluation, defaults to 0%. If you specify this flag, do not specify `num_dev_splits` or `num_test_splits`. |
 | `test_ratio` | float | 0.0 | [0 - 1] | The ratio of data that should be excluded from train set and is saved for testing. This data is not tokenized and left in jsonline format, defaults to 0%. If you specify this flag, do not specify `num_dev_splits` or `num_test_splits`. |
@@ -305,7 +552,6 @@ This section outlines all the flags you can set to customize the data prep pipel
 </br>
 
 ## Examples
-
 
 ### Fine-tuning
 Fine-tuning (also known as "generative tuning") is a technique used to adapt a pre-trained language model to perform better at a specific task. This approach typically involves training the model on input data that is structured as a "prompt" followed by a "completion". The prompt represents the input for a specific task, while the completion is the output that the model should generate. During training, the model learns to generate the relevant completion tokens based on the context provided by the prompt tokens.
@@ -476,6 +722,94 @@ NOTE:
 * `max_batch_size_dev` will be `None` unless dev files are created during generative data pipeline.
 * `token_type_ids` will always be `True` for now since they are always generated.
 
+## Troubleshooting
+
+### Common Issues and Solutions
+
+#### Issue: "Cannot access gated repo" error
+**Problem**: You're trying to use a gated HuggingFace model (like Llama models).
+
+**Solution**:
+1. Go to the model card on HuggingFace (e.g., [Llama-2 Model Card](https://huggingface.co/meta-llama/Llama-2-7b-hf))
+2. Request access to the model
+3. Once approved, log in via HuggingFace CLI:
+   ```bash
+   huggingface-cli login
+   ```
+   Enter your HuggingFace API token when prompted.
+
+**Alternative**: If you have the model checkpoint downloaded locally, you can pass the local path instead:
+```bash
+--pretrained_tokenizer=/path/to/local/tokenizer
+```
+
+#### Issue: "Number of samples in each file must be greater than or equal to batch size"
+**Problem**: Your dataset is too small for the batch size you're trying to use during training.
+
+**Solution**: Check the `max_batch_size_train` value in `<OUTPUT_DIR>/metadata.yaml`. Your training batch size must be ≤ this value. To fix:
+1. **Increase your input data** - Add more training examples
+2. **Use single packing** - Change to `single::truncate_right` which creates more sequences (but may waste space with padding)
+3. **Reduce splits** - Decrease `--num_training_splits` so each file has more data (but you need more splits than training workers)
+
+#### Issue: Pipeline stops or hangs during processing
+**Problem**: This can happen on Windows with multiprocessing or with very large files.
+
+**Solutions**:
+- **On Windows**: The pipeline automatically reduces workers to 2. If it still hangs, manually set `--num_workers=1`
+- **Large files**: Use `--shuffle=large_file` instead of `--shuffle=on_RAM`
+- **Memory issues**: Reduce `--num_workers` to decrease memory usage
+
+#### Issue: UnicodeDecodeError or encoding errors
+**Problem**: Input file contains characters that can't be decoded.
+
+**Solution**: The pipeline automatically handles encoding issues with `errors="replace"`. If you see warnings, they're usually safe to ignore. The problematic characters will be replaced with placeholders.
+
+#### Issue: "File not found" or path errors
+**Problem**: Incorrect file paths, especially on Windows.
+
+**Solutions**:
+- **Use forward slashes** or raw strings on Windows: `r"C:\Users\..."`
+- **Use relative paths** when possible: `./data/input.jsonl`
+- **Check file exists**: Verify the path before running
+
+#### Issue: Progress bar doesn't reach 100%
+**Problem**: The progress bar may show 98-99% even when complete.
+
+**Solution**: This is normal. The pipeline counts non-empty lines, and the final percentage may be slightly off. Check the logs to verify all data was processed.
+
+#### Issue: Out of Memory (OOM) errors
+**Problem**: Not enough RAM for processing.
+
+**Solutions**:
+- Reduce `--num_workers` (try `--num_workers=1` or `--num_workers=2`)
+- Use `--shuffle=large_file` instead of `--shuffle=on_RAM`
+- Process smaller chunks of data
+- Close other applications to free up memory
+
+#### Issue: Missing tokenizer files
+**Problem**: Tokenizer directory doesn't contain required files.
+
+**Solution**: Ensure your tokenizer directory contains:
+- `tokenizer_config.json`
+- `special_tokens_map.json`
+- Other tokenizer files (vocab.json, merges.txt, etc.)
+
+If using a HuggingFace model ID, the files will be downloaded automatically.
+
+### Getting Help
+
+If you encounter issues not covered here:
+1. Check the `logs.log` file in your output directory for detailed error messages
+2. Review the [FAQs](#faqs) section below
+3. Check the [Advanced Usage](#advanced-usage) section for more options
+4. Open an issue on GitHub with:
+   - Your command/configuration
+   - Error message from logs.log
+   - Python version (`python --version`)
+   - Operating system
+
+---
+
 ## FAQs
 
 ### "Cannot access gated repo" error
@@ -490,6 +824,34 @@ To fix this, you can do one of the following:
 1. Increase the amount of input data you use.
 2. Change to a "single" input packing configuration like `single::truncate_right`, which will not pack the sequences with multple data points, and therefore create more training sequences. However, this may cause training to be inefficient because a lot of the available sequence length is wasted with padding tokens.
 3. Decrease the `num_training_splits` so that each split has more data. Keep in mind, however, that you must have more training splits than the number of parallel RDUs you use to train.
+
+### What should I use for `--shuffle`?
+- **`False`**: Don't shuffle (fastest, but data order matters)
+- **`on_RAM`**: Shuffle in memory (use for files < available RAM, fastest shuffling)
+- **`large_file`**: Shuffle large files (use for files larger than RAM, works on all platforms)
+
+**Rule of thumb**: If you're not sure, use `on_RAM`. If you get memory errors, switch to `large_file`.
+
+### What's the difference between packing configurations?
+- **`full`**: Fill sequences completely, may split articles across sequences (best for pre-training)
+- **`greedy::*`**: Fit as many complete articles as possible per sequence (good for fine-tuning)
+- **`single::*`**: One article per sequence (good for small datasets, but wastes space with padding)
+
+See the [Flags](#flags) section for complete details.
+
+### How do I know if my data format is correct?
+Check the [Input](#input) section. Your JSONL should look like:
+```json
+{"prompt": "Your prompt here", "completion": "Your completion here"}
+```
+
+Each line must be valid JSON. Test with:
+```python
+import json
+with open("your_file.jsonl") as f:
+    for line in f:
+        json.loads(line)  # Will raise error if invalid
+```
 
 ## Advanced Usage
 
