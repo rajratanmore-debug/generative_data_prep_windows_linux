@@ -1,5 +1,3 @@
-
-<<<<<<< HEAD
 <a href="https://sambanova.ai/">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="/img/SambaNova-light-logo-1.png" height="60">
@@ -7,9 +5,21 @@
 </picture>
 </a>
 
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/sambanova/generative_data_prep/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/sambanova/generative_data_prep/tree/main)
+[![codecov](https://codecov.io/gh/sambanova/generative_data_prep/graph/badge.svg?token=9CYRCUOOAO)](https://codecov.io/gh/sambanova/generative_data_prep)
+[![Python](https://img.shields.io/badge/python-%3E=3.7-blue.svg)](https://www.python.org/)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![flake8](https://img.shields.io/badge/pep8-flake8-blue.svg)](https://github.com/PyCQA/flake8)
+[![bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/PyCQA/bandit)
+[![isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
+[![mypy](https://img.shields.io/badge/mypy-checked-green.svg)](http://mypy-lang.org/)
+
 # Generative data preparation
 
 This software package allows you to prepare datasets for training generative LLMs on SambaStudio and SambaNova's Reconfigurable Data Units (RDUs). Some features include efficient multiprocessing, shuffling data that outsizes RAM, and specifying tokens to attend to during training.
+
+> **🚀 New to this tool?** Start with the [Quick Start Guide](#quick-start-guide) below for a step-by-step walkthrough. For detailed information, see the [Installation](#installation) and [Getting Started](#getting-started-detailed) sections.
 
 ## What This Tool Does
 
@@ -31,24 +41,6 @@ The pipeline takes your raw text data and converts it into a format ready for tr
 - ✅ **Scalable**: Handles files larger than RAM with `large_file` shuffle option
 - ✅ **Flexible**: Multiple packing strategies for different use cases
 - ✅ **Production-ready**: Comprehensive error handling and logging
-
-## Workflow Overview
-
-```
-Input File (.jsonl/.txt)
-    ↓
-[Optional: Shuffle]
-    ↓
-[Optional: Split into train/dev/test]
-    ↓
-Tokenize (using your tokenizer)
-    ↓
-Pack into sequences (based on config)
-    ↓
-Save as HDF5 files
-    ↓
-Output Directory (ready for training)
-```
 
 The [`pipeline.py`](https://github.com/sambanova/generative_data_prep/blob/main/generative_data_prep/data_prep/pipeline.py) script streamlines the data preparation process. It takes a single input file, shuffles and splits it into train/dev/test files, tokenizes, sequences, and converts them to HDF5 format using the utilities in [`data_prep.py`](https://github.com/sambanova/generative_data_prep/blob/main/generative_data_prep/data_prep/data_prep.py). The output directory contains multiple split HDF5 files that are needed to run data parallel training. This output directory will be directly used as a training dataset in SambaStudio. While this package features simple flows that work out of the box, it also supports more customization allowing for many styles of packing varied length text into tokenized sequences.
 
@@ -107,14 +99,18 @@ All required packages are automatically installed when you run `pip install .`
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/sambanova/generative_data_prep.git
-   cd generative_data_prep
+   git clone https://github.com/rajratanmore-debug/generative_data_prep_windows_linux.git
+   cd generative_data_prep_windows_linux
    ```
+   
+   **Note**: After cloning, navigate into the cloned repository directory. This is the repository root directory where `pyproject.toml` is located. Make sure you're in the root directory (the one containing `pyproject.toml`), not in any subdirectory. You can verify you're in the right place by checking that `pyproject.toml` exists in the current directory.
 
 2. **Install the package**:
    ```bash
    pip install .
    ```
+   
+   **Important**: Make sure you run `pip install .` from the **root directory** of the repository (where `pyproject.toml` is located). After navigating into the cloned repository directory, you should be in the correct directory. If you see an error like "Neither 'setup.py' nor 'pyproject.toml' found", you're in the wrong directory - make sure you're in the repository root (the directory that contains `pyproject.toml`).
    
    **Note**: On some systems, you may need to use `pip3` instead of `pip`, or `python -m pip install .`
 
@@ -134,10 +130,13 @@ pip install -e .
 
 This installs in "editable" mode, so changes to the code are immediately available.
 
+**Important**: Same as above - run this command from the repository root directory where `pyproject.toml` is located.
+
 ### Troubleshooting Installation
 
 - **Permission errors**: Use `pip install --user .` or install in a virtual environment
 - **Python not found**: Ensure Python 3.8.10+ is installed and in your PATH
+- **"Neither 'setup.py' nor 'pyproject.toml' found" error**: You're in the wrong directory. Make sure you're in the repository root (where `pyproject.toml` is located), not in the `generative_data_prep` subdirectory.
 - **Package conflicts**: Use a virtual environment:
   ```bash
   python -m venv venv
@@ -164,8 +163,8 @@ Before running the pipeline, make sure you have:
 ### Step 1: Install the Package
 
 ```bash
-git clone https://github.com/sambanova/generative_data_prep.git
-cd generative_data_prep
+git clone https://github.com/rajratanmore-debug/generative_data_prep_windows_linux.git
+cd generative_data_prep_windows_linux
 pip install .
 ```
 
@@ -853,311 +852,6 @@ The following are some advanced usage patterns that may be applicable to you. Fo
 - If you want to build in custom dataset validation with our pydantic model, look at our section on [pydantic dataset validation](./advanced_usage.md#how-to-use-pydantic-model).
 - If you want to build in dataset verification checks, look at our section on [checking for dataset corruption](./advanced_usage.md#how-to-check-for-corruption).
 - If you want to contribute to this project, check out the [contribution section](./advanced_usage.md#contributing).
-=======
->>>>>>> 780b1a476f2ba82a48894c1159846b053d5dc5b3
-[![CircleCI](https://dl.circleci.com/status-badge/img/gh/sambanova/generative_data_prep/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/sambanova/generative_data_prep/tree/main)
-[![codecov](https://codecov.io/gh/sambanova/generative_data_prep/graph/badge.svg?token=9CYRCUOOAO)](https://codecov.io/gh/sambanova/generative_data_prep)
-[![Python](https://img.shields.io/badge/python-%3E=3.7-blue.svg)](https://www.python.org/)
-[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![flake8](https://img.shields.io/badge/pep8-flake8-blue.svg)](https://github.com/PyCQA/flake8)
-[![bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/PyCQA/bandit)
-[![isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
-[![mypy](https://img.shields.io/badge/mypy-checked-green.svg)](http://mypy-lang.org/)
-
-<a href="https://sambanova.ai/">
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="/img/SambaNova-light-logo-1.png" height="60">
-  <img alt="Text changing depending on mode. Light: 'So light!' Dark: 'So dark!'" src="/img/SambaNova-dark-logo-1.png" height="60">
-</picture>
-</a>
-
-# Generative data preparation
-
-This software package allows you to prepare datasets for training generative LLMs on SambaStudio and SambaNova's Reconfigurable Data Units (RDUs). Some features include efficient multiprocessing, shuffling data that outsizes RAM, and specifying tokens to attend to during training.
-
-## What This Tool Does
-
-The pipeline takes your raw text data and converts it into a format ready for training:
-
-1. **Reads** your input file (`.jsonl` or `.txt` format)
-2. **Shuffles** the data (optional, but recommended)
-3. **Splits** into train/dev/test sets (optional)
-4. **Tokenizes** using your specified tokenizer
-5. **Packs** sequences into fixed-length chunks
-6. **Saves** as HDF5 files ready for training
-
-**Input**: Raw text files → **Output**: Tokenized HDF5 files ready for SambaStudio training
-
-## Key Features
-
-- ✅ **Cross-platform**: Works on Linux, macOS, and Windows
-- ✅ **Efficient**: Multiprocessing support for fast tokenization
-- ✅ **Scalable**: Handles files larger than RAM with `large_file` shuffle option
-- ✅ **Flexible**: Multiple packing strategies for different use cases
-- ✅ **Production-ready**: Comprehensive error handling and logging
-
-## Workflow Overview
-
-```
-Input File (.jsonl/.txt)
-    ↓
-[Optional: Shuffle]
-    ↓
-[Optional: Split into train/dev/test]
-    ↓
-Tokenize (using your tokenizer)
-    ↓
-Pack into sequences (based on config)
-    ↓
-Save as HDF5 files
-    ↓
-Output Directory (ready for training)
-```
-
-The [`pipeline.py`](https://github.com/sambanova/generative_data_prep/blob/main/generative_data_prep/data_prep/pipeline.py) script streamlines the data preparation process. It takes a single input file, shuffles and splits it into train/dev/test files, tokenizes, sequences, and converts them to HDF5 format using the utilities in [`data_prep.py`](https://github.com/sambanova/generative_data_prep/blob/main/generative_data_prep/data_prep/data_prep.py). The output directory contains multiple split HDF5 files that are needed to run data parallel training. This output directory will be directly used as a training dataset in SambaStudio. While this package features simple flows that work out of the box, it also supports more customization allowing for many styles of packing varied length text into tokenized sequences.
-
-If you are an advanced user looking to process data with pre-defined splits, integrate with the package validation tools, or contribute, check out the [Advanced Usage](#advanced-usage) section below!
-
-</br>
-
-## Table of contents
-- [Requirements](#requirements)
-- [Installation](#installation)
-- [Getting Started](#getting-started)
-- [Input](#input)
-- [Formatting data for Chat/Instruction/Fine Tuned Models](#formatting-data-for-chatinstructionfine-tuned-models)
-- [Output](#output)
-- [Flags](#flags)
-- [Examples](#examples)
-    - [Pre-training](#pre-training)
-    - [Fine-tuning](#fine-tuning)
-    - [Dialogue](#dialogue)
-    - [Meta in context learning](#meta-in-context-learning)
-- [Understanding Command Outputs](#understanding-outputs)
-- [FAQs](#faqs)
-- [Advanced Usage](#advanced-usage)
-
-</br>
-
-## Requirements
-
-### System Requirements
-- **Python**: Version 3.8.10 or higher
-- **Operating System**: Linux, macOS, or Windows (fully supported)
-- **RAM**: At least 4GB recommended (more for large datasets)
-- **Disk Space**: Enough space for output files (typically 2-3x input size)
-
-### Python Packages
-All required packages are automatically installed when you run `pip install .`
-
-### Platform-Specific Notes
-
-#### Windows
-- ✅ Fully supported - no special setup required
-- The pipeline automatically adjusts worker count for Windows compatibility
-- Use `python` instead of `python3` in commands
-- File paths can use forward slashes (`/`) or backslashes (`\`), or use raw strings: `r"C:\path\to\file"`
-
-#### Linux / macOS
-- ✅ Fully supported
-- Use `python3` or `python` depending on your system
-- Standard Unix file paths work as expected
-
-</br>
-
-## Installation
-
-### Standard Installation
-
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/sambanova/generative_data_prep.git
-   cd generative_data_prep
-   ```
-
-2. **Install the package**:
-   ```bash
-   pip install .
-   ```
-   
-   **Note**: On some systems, you may need to use `pip3` instead of `pip`, or `python -m pip install .`
-
-3. **Verify installation**:
-   ```bash
-   python -m generative_data_prep --help
-   ```
-   
-   You should see the help message with available commands.
-
-### Alternative: Development Installation
-
-If you plan to modify the code:
-```bash
-pip install -e .
-```
-
-This installs in "editable" mode, so changes to the code are immediately available.
-
-### Troubleshooting Installation
-
-- **Permission errors**: Use `pip install --user .` or install in a virtual environment
-- **Python not found**: Ensure Python 3.8.10+ is installed and in your PATH
-- **Package conflicts**: Use a virtual environment:
-  ```bash
-  python -m venv venv
-  source venv/bin/activate  # On Windows: venv\Scripts\activate
-  pip install .
-  ```
-
-</br>
-
-## Quick Start Guide
-
-### Before You Start - Checklist
-
-Before running the pipeline, make sure you have:
-
-- [ ] **Python 3.8.10+ installed** - Check with `python --version`
-- [ ] **Input data file ready** - Either `.jsonl` or `.txt` format (see [Input Format](#input-format))
-- [ ] **Tokenizer ready** - Either:
-  - HuggingFace model ID (e.g., `openai-community/gpt2`)
-  - Local path to tokenizer directory
-- [ ] **Enough disk space** - Output will be 2-3x the size of your input
-- [ ] **HuggingFace access** (if using gated models) - Log in with `huggingface-cli login`
-
-### Step 1: Install the Package
-
-```bash
-git clone https://github.com/sambanova/generative_data_prep.git
-cd generative_data_prep
-pip install .
-```
-
-**Note for Windows users**: The package is fully compatible with Windows. If you encounter any issues, ensure you're using Python 3.8.10 or higher.
-
-### Step 2: Prepare Your Input Data
-
-Your input data should be in one of these formats:
-- **JSONL format** (recommended): Each line is a JSON object with `prompt` and `completion` fields
-- **TXT format**: Plain text, one article per line
-
-**Example**: The repository includes `example_input_data.jsonl` - you can use this as a reference for the correct format.
-
-See the [Input Format](#input-format) section below for detailed format specifications.
-
-### Step 3: Choose Your Tokenizer
-
-You can use either:
-- **HuggingFace model ID**: e.g., `openai-community/gpt2`, `mistralai/Mistral-7B-v0.1`
-- **Local tokenizer path**: Path to a directory containing tokenizer files
-
-**Important**: If using a gated model (like Llama models), you need to:
-1. Request access on the HuggingFace model card
-2. Log in via HuggingFace CLI: `huggingface-cli login`
-
-### Step 4: Run the Pipeline
-
-#### Using the Command Line
-
-```bash
-# Basic example
-python -m generative_data_prep pipeline \
-    --input_path=your_data.jsonl \
-    --output_path=output_directory \
-    --pretrained_tokenizer=openai-community/gpt2 \
-    --max_seq_length=1024 \
-    --input_packing_config=greedy::drop \
-    --shuffle=on_RAM
-```
-
-**Windows users**: Use `python` instead of `python3`. The command works the same way on all platforms.
-
-### Step 5: Check Your Output
-
-After processing completes, check the output directory:
-- **HDF5 files**: Tokenized training data (e.g., `train_1_of_32.hdf5`)
-  - These are the files you'll use for training
-  - Multiple files allow for parallel data loading during training
-- **metadata.yaml**: Dataset metadata and configuration
-  - Contains important info like `max_batch_size_train` (your training batch size must be ≤ this)
-  - Also includes `max_seq_length`, `vocab_size`, etc.
-- **tokenizer/**: Copy of the tokenizer for inference
-  - This will be included in your model checkpoints
-- **logs.log**: Processing logs and metrics
-  - Detailed information about the processing run
-  - Includes metrics like data utilization, token counts, etc.
-
-**What Success Looks Like**:
-- ✅ Progress bar reaches ~100%
-- ✅ Multiple HDF5 files created (number depends on your data size)
-- ✅ `metadata.yaml` file exists
-- ✅ `tokenizer/` directory exists
-- ✅ No errors in `logs.log`
-
-**If something went wrong**:
-- Check `logs.log` for error messages
-- See the [Troubleshooting](#troubleshooting) section below
-
-### Common Use Cases
-
-<details>
-<summary><b>Fine-tuning a Model</b> (Click to expand)</summary>
-
-For fine-tuning, use `single::truncate_right` or `greedy::truncate_right`:
-
-```bash
-python -m generative_data_prep pipeline \
-    --input_path=your_data.jsonl \
-    --output_path=output \
-    --pretrained_tokenizer=your_tokenizer \
-    --max_seq_length=2048 \
-    --input_packing_config=single::truncate_right \
-    --shuffle=on_RAM
-```
-
-</details>
-
-<details>
-<summary><b>Pre-training</b> (Click to expand)</summary>
-
-For pre-training, use `full` packing:
-
-```bash
-python -m generative_data_prep pipeline \
-    --input_path=your_data.jsonl \
-    --output_path=output \
-    --pretrained_tokenizer=your_tokenizer \
-    --max_seq_length=2048 \
-    --input_packing_config=full \
-    --shuffle=on_RAM
-```
-
-</details>
-
-<details>
-<summary><b>Chat/Instruction Tuning</b> (Click to expand)</summary>
-
-For chat models, add the `--apply_chat_template` flag:
-
-```bash
-python -m generative_data_prep pipeline \
-    --input_path=your_data.jsonl \
-    --output_path=output \
-    --pretrained_tokenizer=your_tokenizer \
-    --max_seq_length=2048 \
-    --input_packing_config=single::truncate_right \
-    --shuffle=on_RAM \
-    --apply_chat_template
-```
-
-**Note**: Your tokenizer must have a chat template defined. Check `tokenizer_config.json` for a `chat_template` key.
-
-</details>
-
----
-
-## Getting Started (Detailed)
 
 The following simple example will help you get started with your first processed dataset:
 
